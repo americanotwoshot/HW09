@@ -3,9 +3,13 @@
 #include "BCPlayerController.h"
 
 #include "BullsAndCows.h"
-#include "EngineUtils.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/GameModeBase.h"
+#include "GameMode/BCGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "UI/BCChatting.h"
+#include "UI/BCNotification.h"
 
 ABCPlayerController::ABCPlayerController()
 {
@@ -29,6 +33,24 @@ void ABCPlayerController::BeginPlay()
 			ChattingWidgetInstance->AddToViewport();
 		}
 	}
+
+	if (IsValid(NotificationWidgetClass))
+	{
+		NotificationWidgetInstance = CreateWidget<UBCNotification>(this, NotificationWidgetClass);
+		if (IsValid(NotificationWidgetInstance))
+		{
+			NotificationWidgetInstance->AddToViewport();
+		}
+	}
+
+	FInputModeUIOnly UIMode;
+	SetInputMode(UIMode);
+	SetShowMouseCursor(true);
+}
+
+void ABCPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
 void ABCPlayerController::SetChatMessage(const FString& InChatMessage)
@@ -46,14 +68,25 @@ void ABCPlayerController::PrintChatMessage(const FString& InChatMessage)
 	UtilFunctionLibrary::MyPrintString(this, InChatMessage, 5.f);
 }
 
+void ABCPlayerController::SetNotificationText(const FString& InText)
+{
+	NotificationText = InText;
+	
+	if (NotificationWidgetInstance)
+	{
+		NotificationWidgetInstance->SetNotificationText(InText);
+	}
+}
+
 void ABCPlayerController::ServerRPCPrintChatMessage_Implementation(const FString& InChatMessage)
 {
-	for (TActorIterator<ABCPlayerController> It(GetWorld()); It; ++It)
+	AGameModeBase* GM = UGameplayStatics::GetGameMode(this);
+	if (IsValid(GM))
 	{
-		ABCPlayerController* BCPC = *It;
-		if (IsValid(BCPC))
+		ABCGameModeBase* BCGM = Cast<ABCGameModeBase>(GM);
+		if (IsValid(BCGM))
 		{
-			BCPC->ClientRPCPrintChatMessage(InChatMessage);	
+			BCGM->PrintChatMessage(this, InChatMessage);
 		}
 	}
 }

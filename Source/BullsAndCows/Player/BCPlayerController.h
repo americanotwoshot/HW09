@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerController.h"
 #include "BCPlayerController.generated.h"
 
+class UBCNotification;
 class UBCChatting;
 /**
  * 
@@ -18,7 +19,8 @@ public:
 	ABCPlayerController();
 
 	virtual void BeginPlay() override;
-
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	void SetChatMessage(const FString& InChatMessage);
 	void PrintChatMessage(const FString& InChatMessage);
 
@@ -28,6 +30,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPrintChatMessage(const FString& InChatMessage);
 
+	void SetNotificationText(const FString& InText);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "BCPlayerController|Widget")
 	TSubclassOf<UBCChatting> ChattingWidgetClass;
@@ -35,5 +39,12 @@ protected:
 	TObjectPtr<UBCChatting> ChattingWidgetInstance;
 
 	FString ChatMessage;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category = "BCPlayerController|Widget")
+	TSubclassOf<UBCNotification> NotificationWidgetClass;
+	UPROPERTY()
+	TObjectPtr<UBCNotification> NotificationWidgetInstance;
+
+private:
+	FString NotificationText;
 };
