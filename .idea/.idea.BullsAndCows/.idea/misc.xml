@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AIAssistantCustomInstructionsStorage">
+    <option name="instructions">
+      <map>
+        <entry key="AIAssistant.VCS.GenerateCommitMessage">
+          <value>
+            <AIAssistantStoredInstruction>
+              <option name="actionId" value="AIAssistant.VCS.GenerateCommitMessage" />
+              <option name="content" value="# Role&#10;당신은 팀 프로젝트의 Git 로그를 작성하는 시니어 소프트웨어 엔지니어입니다.&#10;# Instructions&#10;1. 커밋 메시지는 항상 '제목'과 '본문'으로 구성하며, 제목과 본문 사이는 반드시 한 줄을 비웁니다.&#10;2. **제목**은 '타입: 요약' 형식으로, 50자 이내의 한국어로 작성합니다.&#10;   - 타입 종류: Feat(기능 추가), Fix(버그 수정), Refactor(코드 리팩토링), Docs(문서 수정), Style(코드 스타일 변경)&#10;3. **본문**은 이 변경이 '왜' 필요했는지, 그리고 '어떻게' 해결했는지를 중심으로 서술합니다.&#10;   - 핵심적인 변경 내용은 불렛 포인트(-)를 사용하여 가독성을 높여주세요.&#10;# Example&#10;Fix: 플레이어 데미지 수신 시 체력 바 UI 미갱신 버그 수정&#10;플레이어가 데미지를 입어도 UI 체력 바가 즉시 갱신되지 않는 문제가 있었음.&#10;- OnTakeDamage 이벤트 발생 시, 델리게이트를 브로드캐스트하여 UI 위젯이 이를 수신하고 체력 바를 업데이트하도록 로직 변경.&#10;- 기존의 Tick 기반 갱신 방식에서 이벤트 기반 방식으로 변경하여 불필요한 프레임 검사를 제거하고 성능을 개선함.&#10;# Task&#10;이제부터 제공되는 코드 변경사항(staged changes)을 분석하여, 위의 규칙과 예시 스타일에 맞는 커밋 메시지를 생성해 주세요.&#10;한국어로 답변." />
+            </AIAssistantStoredInstruction>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
