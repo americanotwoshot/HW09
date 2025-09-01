@@ -8,10 +8,18 @@ public class BullsAndCows : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			// Initial Dependencies
+			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput",
+			// UI
+			"UMG", "Slate", "SlateCore",
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
+		PublicIncludePaths.AddRange(new string[] { "BullsAndCows" });
+		
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 		

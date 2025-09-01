@@ -12,4 +12,8 @@ UCLASS()
 class BULLSANDCOWS_API ABCGameStateBase : public AGameStateBase
 {
 	GENERATED_BODY()
+
+public:
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCBroadcastLogin(const FString& InNameString = FString(TEXT("XXXXXX")));
 };
