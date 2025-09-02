@@ -29,6 +29,11 @@ void ABCGameModeBase::OnPostLogin(AController* NewPlayer)
 			BCGameStateBase->MulticastRPCBroadcastLogin(BCPS->PlayerName);
 		}
 	}
+
+	if (AllPlayerControllers.Num() >= 2)
+	{
+		StartGame();
+	}
 }
 
 void ABCGameModeBase::BeginPlay()
@@ -36,6 +41,13 @@ void ABCGameModeBase::BeginPlay()
 	Super::BeginPlay();
 
 	SecretNumber = GenerateSecretNumber();
+}
+
+void ABCGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	GetWorldTimerManager().ClearAllTimersForObject(this);
 }
 
 FString ABCGameModeBase::GenerateSecretNumber()
@@ -132,7 +144,7 @@ void ABCGameModeBase::PrintChatMessage(ABCPlayerController* InChattingPC, const 
 		UpdatedMessage = BCPS->GetPlayerInfo() + TEXT(": ") + InChatMessage;
 	}
 	
-	if (IsGuessNumber(GuessNumber) && BCPS->CurrentGuessCount < BCPS->MaxGuessCount)
+	if (BCPS->bIsTurn && BCPS->CurrentGuessCount < BCPS->MaxGuessCount && IsGuessNumber(GuessNumber))
 	{
 		FString JudgeResultMessage = JudgeResult(SecretNumber, GuessNumber);
 
@@ -142,18 +154,22 @@ void ABCGameModeBase::PrintChatMessage(ABCPlayerController* InChattingPC, const 
 		{
 			UpdatedMessage = BCPS->GetPlayerInfo() + TEXT(": ") + InChatMessage;
 		}
-		
+
 		for (ABCPlayerController* BCPC : AllPlayerControllers)
 		{
 			if (IsValid(BCPC))
 			{
 				FString CombinedMessage = UpdatedMessage + TEXT(" -> ") + JudgeResultMessage;
 				BCPC->ClientRPCPrintChatMessage(CombinedMessage);
-
-				int32 StrikeCount = FCString::Atoi(*JudgeResultMessage.Left(1));
-				JudgeGame(InChattingPC, StrikeCount);
 			}
 		}
+
+		ChangePlayerStateTurn(InChattingPC, false);
+		CurrentPlayerIndex = (CurrentPlayerIndex + 1) % AllPlayerControllers.Num();
+		ChangeTurn();
+		
+		const int32 StrikeCount = FCString::Atoi(*JudgeResultMessage.Left(1));
+		JudgeGame(InChattingPC, StrikeCount);
 	}
 	else
 	{
@@ -188,11 +204,16 @@ void ABCGameModeBase::ResetGame()
 		{
 			BCPS->CurrentGuessCount = 0;
 		}
+		
+		BCPC->RemainingTime = 0;
 	}
+
+	StartGame();
 }
 
-void ABCGameModeBase::JudgeGame(ABCPlayerController* InChattingPC, int InStrikeCount)
+bool ABCGameModeBase::JudgeGame(ABCPlayerController* InChattingPC, int InStrikeCount)
 {
+	bool bIsEnd = false;
 	if (InStrikeCount == 3)
 	{
 		ABCPlayerState* BCPS = InChattingPC->GetPlayerState<ABCPlayerState>();
@@ -205,7 +226,7 @@ void ABCGameModeBase::JudgeGame(ABCPlayerController* InChattingPC, int InStrikeC
 			}
 		}
 
-		ResetGame();
+		bIsEnd = true;
 	}
 	else
 	{
@@ -230,7 +251,94 @@ void ABCGameModeBase::JudgeGame(ABCPlayerController* InChattingPC, int InStrikeC
 				PC->NotificationText = FText::FromString(TEXT("Draw!"));
 			}
 			
-			ResetGame();
+			bIsEnd = true;
+		}
+	}
+
+	if (bIsEnd)
+	{
+		ResetGame();
+	}
+
+	return bIsEnd;
+}
+
+void ABCGameModeBase::StartGame()
+{
+	UE_LOG(LogTemp, Log, TEXT("Start Game!"));
+	CurrentPlayerIndex = 0;
+	ChangeTurn();
+}
+
+void ABCGameModeBase::ChangeTurn()
+{
+	GetWorldTimerManager().ClearTimer(TurnTimeUpdateHandle);
+	RemainingTurnTime = 10.f;
+	
+	if (AllPlayerControllers.IsValidIndex(CurrentPlayerIndex))
+	{
+		ABCPlayerController* BCPC = AllPlayerControllers[CurrentPlayerIndex];
+		if (IsValid(BCPC))
+		{
+			ChangePlayerStateTurn(BCPC, true);
+		}
+		
+		GetWorldTimerManager().SetTimer(TurnTimeUpdateHandle, this, &ThisClass::UpdateRemainingTime, 0.1f, true);
+	}
+}
+
+void ABCGameModeBase::UpdateRemainingTime()
+{
+	RemainingTurnTime = FMath::Max(0.0f, RemainingTurnTime - 0.1f);
+
+	if (AllPlayerControllers.IsValidIndex(CurrentPlayerIndex))
+	{
+		ABCPlayerController* BCPC = AllPlayerControllers[CurrentPlayerIndex];
+		BCPC->RemainingTime = RemainingTurnTime;
+	}
+			
+	if (RemainingTurnTime <= 0.0f)
+	{
+		TurnTimeExpired();
+	}
+}
+
+void ABCGameModeBase::TurnTimeExpired()
+{
+	if (AllPlayerControllers.IsValidIndex(CurrentPlayerIndex))
+	{
+		ABCPlayerController* BCPC = AllPlayerControllers[CurrentPlayerIndex];
+		if (IsValid(BCPC))
+		{
+			IncreaseGuessCount(BCPC);
+			ChangePlayerStateTurn(BCPC, false);
+			
+			if (!JudgeGame(BCPC, 0))
+			{
+				CurrentPlayerIndex = (CurrentPlayerIndex + 1) % AllPlayerControllers.Num();
+				ChangeTurn();
+			}
+		}
+	}
+}
+
+void ABCGameModeBase::ChangePlayerStateTurn(ABCPlayerController* InChattingPC, bool bInIsTurn)
+{
+	if (IsValid(InChattingPC))
+	{
+		ABCPlayerState* BCPS = InChattingPC->GetPlayerState<ABCPlayerState>();
+		if (IsValid(BCPS))
+		{
+			BCPS->bIsTurn = bInIsTurn;
+		}
+
+		if (!bInIsTurn)
+		{
+			InChattingPC->RemainingTime = 0;
+		}
+		else
+		{
+			InChattingPC->RemainingTime = RemainingTurnTime;
 		}
 	}
 }

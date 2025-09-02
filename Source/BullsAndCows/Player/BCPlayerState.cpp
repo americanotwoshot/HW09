@@ -8,6 +8,7 @@ ABCPlayerState::ABCPlayerState()
 	: PlayerName(TEXT("None"))
 	, CurrentGuessCount(0)
 	, MaxGuessCount(3)
+	, bIsTurn(0)
 {
 	bReplicates = true;
 }
@@ -19,6 +20,7 @@ void ABCPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	DOREPLIFETIME(ThisClass, PlayerName);
 	DOREPLIFETIME(ThisClass, CurrentGuessCount);
 	DOREPLIFETIME(ThisClass, MaxGuessCount);
+	DOREPLIFETIME(ThisClass, bIsTurn);
 }
 
 FString ABCPlayerState::GetPlayerInfo()

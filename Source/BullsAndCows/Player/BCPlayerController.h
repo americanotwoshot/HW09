@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerController.h"
 #include "BCPlayerController.generated.h"
 
+class UBCTimeNotification;
 class UBCNotification;
 class UBCChatting;
 /**
@@ -33,6 +34,9 @@ public:
 	UFUNCTION()
 	void OnRep_NotificationText();
 
+	UFUNCTION()
+	void OnRep_RemainingTime();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "BCPlayerController|Widget")
 	TSubclassOf<UBCChatting> ChattingWidgetClass;
@@ -46,7 +50,15 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UBCNotification> NotificationWidgetInstance;
 
+	UPROPERTY(EditDefaultsOnly, Category = "BCPlayerController|Widget")
+	TSubclassOf<UBCTimeNotification> TimeNotificationWidgetClass;
+	UPROPERTY()
+	TObjectPtr<UBCTimeNotification> TimeNotificationWidgetInstance;
+
 public:
 	UPROPERTY(ReplicatedUsing = OnRep_NotificationText)
 	FText NotificationText;
+
+	UPROPERTY(ReplicatedUsing = OnRep_RemainingTime)
+	float RemainingTime;
 };

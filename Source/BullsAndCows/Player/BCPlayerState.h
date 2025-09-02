@@ -29,4 +29,7 @@ public:
 
 	UPROPERTY(Replicated)
 	int32 MaxGuessCount;
+
+	UPROPERTY(Replicated)
+	uint8 bIsTurn : 1;
 };

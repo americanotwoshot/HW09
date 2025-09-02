@@ -10,6 +10,7 @@
 #include "Net/UnrealNetwork.h"
 #include "UI/BCChatting.h"
 #include "UI/BCNotification.h"
+#include "UI/BCTimeNotification.h"
 
 ABCPlayerController::ABCPlayerController()
 {
@@ -43,6 +44,15 @@ void ABCPlayerController::BeginPlay()
 		}
 	}
 
+	if (IsValid(TimeNotificationWidgetClass))
+	{
+		TimeNotificationWidgetInstance = CreateWidget<UBCTimeNotification>(this, TimeNotificationWidgetClass);
+		if (IsValid(TimeNotificationWidgetInstance))
+		{
+			TimeNotificationWidgetInstance->AddToViewport();
+		}
+	}
+
 	FInputModeUIOnly UIMode;
 	SetInputMode(UIMode);
 	SetShowMouseCursor(true);
@@ -53,6 +63,7 @@ void ABCPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, NotificationText);
+	DOREPLIFETIME(ThisClass, RemainingTime);
 }
 
 void ABCPlayerController::SetChatMessage(const FString& InChatMessage)
@@ -75,6 +86,14 @@ void ABCPlayerController::OnRep_NotificationText()
 	if (NotificationWidgetInstance)
 	{
 		NotificationWidgetInstance->SetNotificationText(NotificationText);
+	}
+}
+
+void ABCPlayerController::OnRep_RemainingTime()
+{
+	if (TimeNotificationWidgetInstance)
+	{
+		TimeNotificationWidgetInstance->UpdateRemainingTime(RemainingTime);
 	}
 }
 
