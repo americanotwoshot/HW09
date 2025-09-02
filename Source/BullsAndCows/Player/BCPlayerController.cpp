@@ -51,6 +51,8 @@ void ABCPlayerController::BeginPlay()
 void ABCPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, NotificationText);
 }
 
 void ABCPlayerController::SetChatMessage(const FString& InChatMessage)
@@ -68,13 +70,11 @@ void ABCPlayerController::PrintChatMessage(const FString& InChatMessage)
 	UtilFunctionLibrary::MyPrintString(this, InChatMessage, 5.f);
 }
 
-void ABCPlayerController::SetNotificationText(const FString& InText)
+void ABCPlayerController::OnRep_NotificationText()
 {
-	NotificationText = InText;
-	
 	if (NotificationWidgetInstance)
 	{
-		NotificationWidgetInstance->SetNotificationText(InText);
+		NotificationWidgetInstance->SetNotificationText(NotificationText);
 	}
 }
 

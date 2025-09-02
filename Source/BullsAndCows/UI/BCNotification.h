@@ -15,7 +15,7 @@ class BULLSANDCOWS_API UBCNotification : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetNotificationText(const FString& InText);
+	void SetNotificationText(const FText& InText);
 
 private:
 	FTimerHandle TimerHandle;

@@ -30,7 +30,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPrintChatMessage(const FString& InChatMessage);
 
-	void SetNotificationText(const FString& InText);
+	UFUNCTION()
+	void OnRep_NotificationText();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "BCPlayerController|Widget")
@@ -45,6 +46,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UBCNotification> NotificationWidgetInstance;
 
-private:
-	FString NotificationText;
+public:
+	UPROPERTY(ReplicatedUsing = OnRep_NotificationText)
+	FText NotificationText;
 };

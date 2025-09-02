@@ -13,7 +13,7 @@ void ABCGameModeBase::OnPostLogin(AController* NewPlayer)
 	ABCPlayerController* PC = Cast<ABCPlayerController>(NewPlayer);
 	if (IsValid(PC))
 	{
-		PC->SetNotificationText(TEXT("Connected to the server."));
+		PC->NotificationText = FText::FromString(TEXT("Connected to the server."));
 		
 		AllPlayerControllers.Add(PC);
 
@@ -55,6 +55,8 @@ FString ABCGameModeBase::GenerateSecretNumber()
 		Result += FString::FromInt(Numbers[Index]);
 		Numbers.RemoveAt(Index);
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("Secret Number: %s"), *Result);
 
 	return Result;
 }
@@ -112,6 +114,8 @@ FString ABCGameModeBase::JudgeResult(const FString& InSecretNumber, const FStrin
 		return TEXT("OUT");
 	}
 
+	UE_LOG(LogTemp,Warning, TEXT("StrikeCount: %d, BallCount: %d"), StrikeCount, BallCount);
+
 	return FString::Printf(TEXT("%dS%dB"), StrikeCount, BallCount);
 }
 
@@ -128,7 +132,7 @@ void ABCGameModeBase::PrintChatMessage(ABCPlayerController* InChattingPC, const 
 		UpdatedMessage = BCPS->GetPlayerInfo() + TEXT(": ") + InChatMessage;
 	}
 	
-	if (IsGuessNumber(GuessNumber))
+	if (IsGuessNumber(GuessNumber) && BCPS->CurrentGuessCount < BCPS->MaxGuessCount)
 	{
 		FString JudgeResultMessage = JudgeResult(SecretNumber, GuessNumber);
 
@@ -197,18 +201,18 @@ void ABCGameModeBase::JudgeGame(ABCPlayerController* InChattingPC, int InStrikeC
 			if (IsValid(PC))
 			{
 				FString CombinedMessage = BCPS->PlayerName + TEXT(" winned!");
-				PC->SetNotificationText(CombinedMessage);
-
-				ResetGame();
+				PC->NotificationText = FText::FromString(CombinedMessage);
 			}
 		}
+
+		ResetGame();
 	}
 	else
 	{
 		bool bIsDraw = true;
 		for (const auto& PC : AllPlayerControllers)
 		{
-			ABCPlayerState* BCPS = InChattingPC->GetPlayerState<ABCPlayerState>();
+			ABCPlayerState* BCPS = PC->GetPlayerState<ABCPlayerState>();
 			if (IsValid(BCPS))
 			{
 				if (BCPS->CurrentGuessCount < BCPS->MaxGuessCount)
@@ -223,10 +227,10 @@ void ABCGameModeBase::JudgeGame(ABCPlayerController* InChattingPC, int InStrikeC
 		{
 			for (const auto& PC : AllPlayerControllers)
 			{
-				PC->SetNotificationText(TEXT("Draw!"));
-
-				ResetGame();
+				PC->NotificationText = FText::FromString(TEXT("Draw!"));
 			}
+			
+			ResetGame();
 		}
 	}
 }

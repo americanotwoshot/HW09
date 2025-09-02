@@ -4,12 +4,12 @@
 
 #include "Components/TextBlock.h"
 
-void UBCNotification::SetNotificationText(const FString& InText)
+void UBCNotification::SetNotificationText(const FText& InText)
 {
-	TextBlock_Notification->SetText(FText::FromString(InText));
+	TextBlock_Notification->SetText(InText);
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]()
 	{
-		TextBlock_Notification->SetText(FText::GetEmpty());
+		TextBlock_Notification->SetText(FText());
 	}), 5.f, false);
 }
